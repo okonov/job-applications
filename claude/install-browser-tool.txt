@@ -1,0 +1,24 @@
+How to give Claude Code browser-control ability (Playwright MCP)
+==================================================================
+
+This lets Claude Code navigate web pages, click, and fill form fields
+directly (e.g. to help fill out the Omnissa/Workday job application).
+
+Steps:
+
+1. Make sure Node.js is installed:
+   node -v
+
+2. Register the Playwright MCP server with Claude Code:
+   claude mcp add playwright -- npx -y @playwright/mcp@latest
+
+3. Install the browser binaries it needs:
+   npx -y playwright install chromium
+
+4. Restart the Claude Code session (or run /mcp inside it) so the
+   new tools become available.
+
+After this, Claude Code will have tools such as browser_navigate,
+browser_click, browser_fill, and browser_screenshot, and can drive
+the Workday application form directly (with your review before any
+submission).
