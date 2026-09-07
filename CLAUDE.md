@@ -12,9 +12,9 @@ Working directory for job applications. Designed to be self-sufficient: clone/co
 
 ## Candidate profile
 
-Dmitry Okonov, Vancouver BC. 20+ years software engineering experience. Targeting staff/senior engineering roles.
+Your title and targeted roles.
 
-**Email:** okonov.d@gmail.com (personal). Applications submitted via Claude use okonov.d+claude@gmail.com for tracking.
+**Email:** you@gmail.com (personal).
 
 Work history (see `profile/resume_your_name.md` for full bullet points and tech stacks):
 

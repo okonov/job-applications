@@ -26,7 +26,7 @@ Also flag date ambiguity: if the resume's current-job end date equals today's da
 
 The candidate's Workday profile (My Information, resume upload) may already be pre-filled from a prior session under their email. Check the "Application Progress" step list at the top of the form before assuming a blank form.
 
-Resume and profile data lives in `profile/resume_dmitry_okonov.md` — use it as the source of truth for all field values.
+Resume and profile data lives in `profile/resume_your_name.md` — use it as the source of truth for all field values.
 
 ## Filling: patterns that work
 

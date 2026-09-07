@@ -1,6 +1,6 @@
 ---
-name: job-apply
-description: Open a LinkedIn job posting (a linkedin.com/jobs/... link), expand the full "About the job" description behind LinkedIn's "...see more" truncation, and compare it against the candidate's resume (profile/resume_your_name.md) to assess fit. Uses the Claude Chrome/Edge extension for browser automation. Invoke this skill whenever the user shares a LinkedIn job URL, or asks things like "can you check this job out", "is this a good fit for me", "look at this posting", "what do you think of this role", or pastes a linkedin.com link with little other comment — even if they don't explicitly say "use job-apply" or "apply". This is the research/triage step that runs *before* any actual application: it reads the posting and discusses fit, but never fills out forms or submits anything (once a match is confirmed and the user wants to actually apply, that's a separate step — e.g. the `workday-apply` skill if the application turns out to run on Workday).
+name: linkedin-apply
+description: Open a LinkedIn job posting (a linkedin.com/jobs/... link), expand the full "About the job" description behind LinkedIn's "...see more" truncation, and compare it against the candidate's resume (profile/resume_dmitry_okonov.md) to assess fit. Uses the Claude Chrome/Edge extension for browser automation. Invoke this skill whenever the user shares a LinkedIn job URL, or asks things like "can you check this job out", "is this a good fit for me", "look at this posting", "what do you think of this role", or pastes a linkedin.com link with little other comment — even if they don't explicitly say "use linkedin-apply" or "apply". This is the research/triage step that runs *before* any actual application: it reads the posting and discusses fit, but never fills out forms or submits anything (once a match is confirmed and the user wants to actually apply, that's a separate step — e.g. the `workday-apply` skill if the application turns out to run on Workday, or `indeed-apply` for Indeed's own flow).
 ---
 
 Reads a LinkedIn job posting, checks it against the candidate's resume, and discusses the fit with the user. Scope ends there — no cover letters, no form-filling, no submitting. Those are separate, explicit follow-up requests.
@@ -93,7 +93,7 @@ If Playwright is the chosen tool, adjust the instructions: use `browser_navigate
 
 ## Step 2: Compare against the resume
 
-Read `profile/resume_your_name.md` — it's the source of truth for the candidate's background. Also read `profile/data_your_name.md` for contact details (email, phone, address) to use when filling application forms — always use the email from that file, not any other address. Compare against the posting and form a view on:
+Read `profile/resume_dmitry_okonov.md` — it's the source of truth for the candidate's background. Also read `profile/data_dmitry_okonov.md` for contact details (email, phone, address) to use when filling application forms — always use the email from that file, not any other address. Compare against the posting and form a view on:
 
 - **Strengths** — requirements the resume clearly covers, pointing at *which* role/bullet backs it up.
 - **Gaps** — requirements the resume doesn't obviously cover, or covers thinly.
@@ -111,7 +111,7 @@ Read `tracker/status-flow.md` and check whether this posting (by URL) or this co
 
 ## Step 4: Save notes
 
-Work out the company's folder name following the convention under `companies/` (Title_Case, underscores for spaces). Check case-insensitively for an existing folder before creating a new one.
+Work out the company's folder name following the convention under `companies/` (Title_Case, underscores for spaces, e.g. `Global_Relay`, `Remitly`). Check case-insensitively for an existing folder before creating a new one.
 
 Write two files into `companies/<Company>/`:
 - `job_description.md` — title, company, location, source URL, date checked, and the full expanded description text (the subagent's DESCRIPTION field).
@@ -135,6 +135,50 @@ Once the user decides, add or update a row in `tracker/status-flow.md`. The file
 - Update in place if the company/URL already has a row; don't duplicate.
 - **Job URL column:** always use a markdown link, never a bare URL — e.g. `[LinkedIn](https://www.linkedin.com/jobs/view/...)` for LinkedIn postings, or `[JobBoard](url)` for other sources (Workday, Greenhouse, company site, etc.).
 - **Status values:** `Considering`, `Applied`, `Skipped`, `Interviewing`, `Offer`, `Rejected`
-- **Notes:** one-line reason for the decision.
+
+### The Notes column: application process only
+
+**The tracker is an index, not a second copy of the research.** `companies/<Company>/job_description.md` and `match_notes.md` are the source of truth for everything about the *job*. The Notes column covers the *application* — what was done, where, and what happens next. Keep it to a few sentences and end with a pointer: `JD and match notes in companies/<Company>/.`
+
+**Belongs in Notes** (lives nowhere else):
+
+- The ATS and route — Workday / Greenhouse (`gh_jid`) / Ashby / JazzHR / Njoyn / LinkedIn Easy Apply / company careers site — plus req or position ID.
+- Whether an account or login was required, and who created it.
+- The salary figure **actually submitted**, and the band it was chosen against.
+- Screening/questionnaire answers given, especially anything answered honestly against a gap.
+- What was deliberately left blank for the user (EEO, consent dropdowns, voluntary self-ID).
+- Who completed the final submission, and any confirmation number.
+- Outstanding next steps — assessments, take-homes, recruiter follow-ups — with links and dates.
+- Open items to raise with the recruiter (e.g. a posting/screening contradiction).
+- Outcome dates: rejected/interviewed/offer, with the source.
+- Form quirks worth knowing next time for that ATS.
+- For `Skipped`: that no application was submitted, and whether the posting is re-openable. The *reasoning* goes in match notes.
+
+**Does NOT belong in Notes** (already in the company folder — do not restate):
+
+- Strengths, gaps, grep-verified keyword hits/misses.
+- Comp-band comparisons against other roles in the search.
+- Team/domain/product descriptions, stack breakdowns, seniority-level commentary.
+- Anything quoted or paraphrased from the JD.
+
+If a fact is in `job_description.md` or `match_notes.md`, it does not go in the tracker. If it is genuinely recorded nowhere else, keep it — check before cutting.
 
 Do this automatically after the user's decision — don't wait to be asked.
+
+---
+
+## Appendix: LinkedIn Easy Apply quirk — blank Work Experience cities
+
+When the user goes on to actually apply via LinkedIn's own **native Easy Apply** flow (not a redirect to an external ATS), the Work Experience step sometimes auto-populates title, company, dates, and description for every entry from the resume/profile, but leaves every entry's **City** field blank. This has now been observed more than once — it's a recurring LinkedIn-side gap, not a one-off. Check for it on every native Easy Apply application: scroll through the Work Experience step and see whether City reads "– –" for the entries.
+
+If it's blank, fill it in for every entry:
+
+- **Arben** (the earliest role, Jul 2002 – Jul 2005) → `Moscow, Russia`
+- **Every other entry** (Motorola Solutions, Orbital Technologies, Global Relay, Staples/PNI Digital Media, Flowfinity Wireless Inc.) → `Vancouver, British Columbia, Canada`
+
+Procedure and pitfalls, learned the hard way filling all six entries in one session:
+
+- Click into the City field and type "Vancouver" (or "Moscow"), then **wait for the autocomplete dropdown and explicitly click the correct suggestion** (`Vancouver, British Columbia, Canada`). Don't trust the raw typed text — it can silently autocomplete to something else (observed once: it turned into "Vienna, Austria").
+- **Never click "Cancel" on an entry's edit form, even when you opened it by accident and changed nothing.** Cancel reverts that entry's City back to blank — it does not just close the editor. Always click "Save" instead, regardless of whether you intended to edit that particular entry.
+- The per-entry "Edit"/"Remove" links (shown once you're back in read-only summary view) are unreliable: after a Save, the panel scrolls back to the top of the Work Experience section, and clicking what looks like entry N's "Edit" link can reopen a *different* entry because the layout shifts. After clicking Edit, always check the Company field to confirm which entry actually opened before typing anything.
+- Do a full top-to-bottom verification pass — scroll through all entries and confirm each City — after finishing, since a stray accidental Cancel earlier in the process can silently wipe an entry you already fixed.
